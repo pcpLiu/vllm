@@ -9,6 +9,7 @@ import msgspec
 
 import vllm.platforms
 from vllm.config import ParallelConfig
+import vllm.envs as envs
 from vllm.executor.msgspec_utils import decode_hook, encode_hook
 from vllm.logger import init_logger
 from vllm.sequence import ExecuteModelRequest, IntermediateTensors
@@ -330,7 +331,8 @@ def initialize_ray_cluster(
                 device_str)
         # Create a new placement group
         placement_group_specs: List[Dict[str, float]] = ([{
-            device_str: 1.0
+            # Respecting fractional GPUs usage from Env
+            device_str: envs.VLLM_RAY_PER_WORKER_GPUS if device_str == "GPU" else 1.0
         } for _ in range(parallel_config.world_size)])
 
         # vLLM engine is also a worker to execute model with an accelerator,
